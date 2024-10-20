@@ -60,4 +60,4 @@ With a time constraint i aimed to only test the core of the project.
     -   Right now the worker and magefile only panic or return if something happend, with more error handling the code can be more resilient.
 -   Add information stored in delegations if needed.
 -   `cmd/worker/delegations` and `magefiles/fetchDelegationsFromYear` use almost the same code, we can think of a better solution to handle this.
--   Add more comment, right now their is not a lot of comment as i tried not to over-exxagerate the time spent on the exercice.
+-   Add quality of comment, i tried to keep everything documented but sometimes comment can be a bit flaky/poor.
