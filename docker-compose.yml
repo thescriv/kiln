@@ -13,7 +13,7 @@ services:
     volumes:
       - /var/lib/mysql
 
-  mysql2:
+  mysql_test:
     platform: linux/x86_64
     image: mysql:8.0.27
     restart: always

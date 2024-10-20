@@ -9,21 +9,40 @@ As the code can be a bit "fat", i tried to not overload reviewer and store logic
 
 I loose a lot of time with a bunch of error with database configuration and error debugging.
 
-Overall the test was interesting, challenging and i could've learn new things, thank you.
+Overall the test was interesting, challenging and i learned new things, thank you.
 
 ## Setup
 
-Download and install docker & docker compose -> `brew install docker`
-Download and install magefile -> `git clone https://github.com/magefile/mage && cd mage && go run bootstrap.go && export PATH=$(go env GOPATH)/bin:$PATH && cd ..`
+Download and install docker :
 
-copy content from `.env.example` to `.env`
+    ```bash
+    brew install docker
+    ```
+
+Then run the docker-compose file :
+
+```bash
+    docker compose up -d
+```
+
+Download and install magefile:
+
+```bash
+    git clone https://github.com/magefile/mage && cd mage && go run bootstrap.go && export PATH=$(go env GOPATH)/bin:$PATH && cd ..
+```
+
+copy content from `.env.example` to `.env` and adjust as needed.
+Value provided in `.env.example` match connection specified in `docker-compose.yml`
 
 ## Usage
 
-When launching the principal process a worker is launched in a goroutine to fetch recent delegations from tezos blockchain.
+`go run cmd/main.go`
 
--   If no delegations exist in db, the worker will start to fetch all delegations from `time.Now().AddDate(0, 0, -1)`
--   If delegations exist in db, the worker will pull the more recent one based on the field `timestamp` and will fetch all new delegations based on the `timestamp` found.
+The repo provide two databases : mysql and mysql_test.
+
+-   mysql is used by the principal service to run the core project.
+-   mysql_test is used by the test to insert and read from a db.
+    -   I choosed to use a testDB instead of a mock db to win time and not declare mocking function.
 
 The project expose a single endpoint : `xtz/delegations` which return the last delegations found in DB.
 You can provide a bunch of query params :
@@ -35,7 +54,14 @@ You can provide a bunch of query params :
 -   `limit`
     -   Limit the delegations fetching to a limit, as a lot of delegations can be found, by default the value is set to `100`.
 
+### Worker Specification
+
+-   If no delegations exist in db, the worker will start to fetch all delegations from `time.Now().AddDate(0, 0, -1)`
+-   If delegations exist in db, the worker will pull the more recent one based on the field `timestamp` and will fetch all new delegations based on the `timestamp` found.
+
 ## MageFile
+
+`mage tezos:fetchDelegationsFromYear`
 
 This repo provide a magefile `tezos:fetchDelegationsFromYear` and wait a for a parameter `year`.
 The magefile `fetchDelegationsFromYear` will poll all delegations from the year provided and it will store it in the mysqlDB provided by docker.
@@ -61,3 +87,5 @@ With a time constraint i aimed to only test the core of the project.
 -   Add information stored in delegations if needed.
 -   `cmd/worker/delegations` and `magefiles/fetchDelegationsFromYear` use almost the same code, we can think of a better solution to handle this.
 -   Add quality of comment, i tried to keep everything documented but sometimes comment can be a bit flaky/poor.
+-   fix inconsistency in the codebase
+    -   flaky importation of models, sometimes I use the system of . import and sometimes i call `models`

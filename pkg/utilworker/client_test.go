@@ -34,12 +34,11 @@ func TestWorker_StartAndStop(t *testing.T) {
 	time.Sleep(1500 * time.Millisecond)
 	assert.True(t, fnCalled)
 
-	// Cancel the context to stop the worker
 	cancel()
 
 	fnCalled = false
 
-	// Ensure that the worker no longer runs the function
 	time.Sleep(2 * time.Second)
+
 	assert.False(t, fnCalled)
 }
