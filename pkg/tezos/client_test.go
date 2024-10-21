@@ -1,7 +1,6 @@
 package tezos_test
 
 import (
-	"fmt"
 	"net/http"
 	"testing"
 	"time"
@@ -26,12 +25,12 @@ func TestTezos_FetchDelegatiosn(t *testing.T) {
 	tezosClient := tezos.NewClient()
 
 	for _, tt := range []struct {
-		name         string
-		mocks        []*gock.Mocker
-		queryParams  map[string]any
-		tezosOptions tezos.TezosOptions
-		response     []tezos.DelegationResponse
-		err          error
+		name                   string
+		mocks                  []*gock.Mocker
+		queryParams            map[string]any
+		TezosDelegationsOption tezos.TezosDelegationsOption
+		response               []tezos.DelegationResponse
+		err                    error
 	}{
 		{
 			name: "success",
@@ -65,8 +64,8 @@ func TestTezos_FetchDelegatiosn(t *testing.T) {
 					Timestamp: time.Date(2024, 1, 1, 10, 0, 0, 0, time.UTC).Format(time.RFC3339),
 				},
 			},
-			tezosOptions: tezos.TezosOptions{},
-			err:          nil,
+			TezosDelegationsOption: tezos.TezosDelegationsOption{},
+			err:                    nil,
 		},
 		{
 			name: "no delegation found",
@@ -76,18 +75,9 @@ func TestTezos_FetchDelegatiosn(t *testing.T) {
 					gock.NewResponse().BodyString(`[]`).Status(200),
 				),
 			},
-			tezosOptions: tezos.TezosOptions{},
-			response:     []tezos.DelegationResponse{},
-			err:          nil,
-		},
-		{
-			name:  "no delegation found, invalid From param",
-			mocks: []*gock.Mocker{},
-			tezosOptions: tezos.TezosOptions{
-				From: time.Now().Format(time.April.String()),
-			},
-			response: []tezos.DelegationResponse{},
-			err:      fmt.Errorf("format of field From should be RFC3339"),
+			TezosDelegationsOption: tezos.TezosDelegationsOption{},
+			response:               []tezos.DelegationResponse{},
+			err:                    nil,
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
@@ -99,7 +89,7 @@ func TestTezos_FetchDelegatiosn(t *testing.T) {
 				gock.Register(mock)
 			}
 
-			res, err := tezosClient.FetchDelegations(tt.tezosOptions)
+			res, err := tezosClient.FetchDelegations(tt.TezosDelegationsOption)
 			require.Equal(t, err, tt.err)
 
 			require.Equal(t, res, tt.response)

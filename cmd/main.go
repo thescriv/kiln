@@ -6,9 +6,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/kiln-mid/cmd/worker"
 	"github.com/kiln-mid/cmd/xtz"
 	"github.com/kiln-mid/pkg/db"
+	"github.com/kiln-mid/pkg/delegations"
 	"github.com/kiln-mid/pkg/tezos"
 	"github.com/kiln-mid/pkg/utilconfig"
 	"github.com/kiln-mid/pkg/utilworker"
@@ -34,9 +34,24 @@ func main() {
 
 	tezosClient := tezos.NewClient()
 
-	workerDelegations := worker.NewDelegationWorker(tezosClient, DelegationsRepository)
+	delegationsClient := delegations.NewClient(*tezosClient, DelegationsRepository)
 
-	utilworker.NewIntervalWorker("worker-delegations", workerDelegations.Run, 0).Start(context.Background())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	go utilworker.StartNewIntervalWorker("worker-delegations", func() error {
+		delegations, err := delegationsClient.PollNew()
+		if err != nil {
+			return err
+		}
+
+		_, err = delegationsClient.Create(delegations)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}, 0, ctx)
 
 	r.Run()
 }

@@ -1,7 +1,6 @@
 package xtz_test
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"os"
@@ -28,7 +27,7 @@ func TestGetLastDelegations(t *testing.T) {
 
 	dr := db.NewDelegationsAdapter(dbClient.DB)
 
-	dr.CreateMany(context.Background(), &[]models.Delegations{
+	dr.CreateMany(&[]models.Delegations{
 		{
 			ID:        1,
 			TezosID:   1,
@@ -68,7 +67,7 @@ func TestGetLastDelegations(t *testing.T) {
 					Amount:    1,
 					Level:     1,
 					Delegator: "foobar",
-					Timestamp: time.Date(2024, 1, 1, 11, 0, 0, 0, time.UTC),
+					Timestamp: time.Date(2024, 1, 1, 10, 0, 0, 0, time.UTC),
 				},
 				{
 					ID:        2,

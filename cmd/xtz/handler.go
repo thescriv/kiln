@@ -56,7 +56,7 @@ func (a *Handler) getLastDelegations(c *gin.Context) {
 	var delegations = &[]models.Delegations{}
 
 	if queryParams.Year == 0 {
-		delegationsPtr, err := a.DelegationsRepository.FindAndOrderByTimestamp(c.Request.Context(), queryParams.Limit, queryParams.Limit*(queryParams.Page-1))
+		delegationsPtr, err := a.DelegationsRepository.FindAndOrderByTimestamp(queryParams.Limit, queryParams.Limit*(queryParams.Page-1))
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -64,7 +64,7 @@ func (a *Handler) getLastDelegations(c *gin.Context) {
 
 		delegations = delegationsPtr
 	} else {
-		years, err := a.DelegationsRepository.FindAvailableYear(c.Request.Context())
+		years, err := a.DelegationsRepository.FindAvailableYear()
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -75,7 +75,7 @@ func (a *Handler) getLastDelegations(c *gin.Context) {
 			return
 		}
 
-		delegationsPtr, err := a.DelegationsRepository.FindFromYear(c.Request.Context(), queryParams.Year, queryParams.Limit, queryParams.Limit*(queryParams.Page-1))
+		delegationsPtr, err := a.DelegationsRepository.FindFromYear(queryParams.Year, queryParams.Limit, queryParams.Limit*(queryParams.Page-1))
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
