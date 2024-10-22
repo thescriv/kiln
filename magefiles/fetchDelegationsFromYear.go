@@ -42,7 +42,7 @@ func (Tezos) FetchDelegationsFromYear(ctx context.Context, year int) {
 	}
 
 	for {
-		delegations, err := delegationClient.PollWithTezosOptions(tezosOpt)
+		delegations, err := delegationClient.PollWithTezosOptions(ctx, tezosOpt)
 		if err != nil {
 			panic(err)
 		}
@@ -51,7 +51,7 @@ func (Tezos) FetchDelegationsFromYear(ctx context.Context, year int) {
 			break
 		}
 
-		_, err = delegationClient.Create(delegations)
+		_, err = delegationClient.Create(ctx, delegations)
 		if err != nil {
 			panic(err)
 		}

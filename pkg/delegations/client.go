@@ -1,6 +1,7 @@
 package delegations
 
 import (
+	"context"
 	"fmt"
 	"slices"
 	"time"
@@ -29,11 +30,11 @@ func NewClient(tezosClient *tezos.Client, dr db.DelegationsRepository) *Client {
 // year represent the year to search delegations for, if year is equal to 0 it will retrieve Most Recent delegations, year cannot be equal to something non-present in db.
 // page represent the current page for the pagination.
 // limit represent the number max of item asked by the client.
-func (c Client) GetDelegations(year int, page int, limit int) (*[]models.Delegations, error) {
+func (c Client) GetDelegations(ctx context.Context, year int, page int, limit int) (*[]models.Delegations, error) {
 	offset := limit * (page - 1)
 
 	if year == 0 {
-		delegations, err := c.delegationsRepository.FindAndOrderByTimestamp(limit, offset)
+		delegations, err := c.delegationsRepository.FindAndOrderByTimestamp(ctx, limit, offset)
 		if err != nil {
 			return &[]models.Delegations{}, fmt.Errorf("delegationsRepository findAndOrderByTimestamp: %w", err)
 		}
@@ -41,7 +42,7 @@ func (c Client) GetDelegations(year int, page int, limit int) (*[]models.Delegat
 		return delegations, nil
 	}
 
-	years, err := c.delegationsRepository.FindAvailableYear()
+	years, err := c.delegationsRepository.FindAvailableYear(ctx)
 	if err != nil {
 		return &[]models.Delegations{}, fmt.Errorf("delegationsRepository FindAvailableYear: %w", err)
 	}
@@ -50,7 +51,7 @@ func (c Client) GetDelegations(year int, page int, limit int) (*[]models.Delegat
 		return &[]models.Delegations{}, fmt.Errorf("Here are the following available years: " + miscellaneous.SplitToString(*years, ","))
 	}
 
-	delegations, err := c.delegationsRepository.FindFromYear(year, limit, offset)
+	delegations, err := c.delegationsRepository.FindFromYear(ctx, year, limit, offset)
 	if err != nil {
 		return &[]models.Delegations{}, fmt.Errorf("delegationsRepository FindFromYear: %w", err)
 	}
@@ -59,7 +60,7 @@ func (c Client) GetDelegations(year int, page int, limit int) (*[]models.Delegat
 }
 
 // PollWithTezosOptions poll all delegations matching the provided tezosOptions.
-func (c Client) PollWithTezosOptions(tezosOpt tezos.TezosDelegationsOption) ([]models.Delegations, error) {
+func (c Client) PollWithTezosOptions(ctx context.Context, tezosOpt tezos.TezosDelegationsOption) ([]models.Delegations, error) {
 	delegationsResponse, err := c.tezosClient.FetchDelegations(tezosOpt)
 	if err != nil {
 		return []models.Delegations{}, err
@@ -76,8 +77,8 @@ func (c Client) PollWithTezosOptions(tezosOpt tezos.TezosDelegationsOption) ([]m
 // PollNew poll new delegations based on two possibilities.
 // 1. if a delegations is found in database, take the timestamp of the most recent one.
 // 2. if no delegation is found in database, start to fetch the earliest delegation from time.Now().AddDate(0, 0, -1)
-func (c Client) PollNew() ([]models.Delegations, error) {
-	recentDelegations, err := c.delegationsRepository.FindMostRecent()
+func (c Client) PollNew(ctx context.Context) ([]models.Delegations, error) {
+	recentDelegations, err := c.delegationsRepository.FindMostRecent(ctx)
 	if err != nil {
 		return []models.Delegations{}, fmt.Errorf("delegationsRepository FindMostRecent: %s", err)
 	}
@@ -107,8 +108,8 @@ func (c Client) PollNew() ([]models.Delegations, error) {
 // Create call the delegationsRepository to create given delegations
 // number of delegations created are returned.
 // return an error if something happen
-func (c Client) Create(delegations []models.Delegations) (int64, error) {
-	rowsAffected, err := c.delegationsRepository.CreateMany(&delegations)
+func (c Client) Create(ctx context.Context, delegations []models.Delegations) (int64, error) {
+	rowsAffected, err := c.delegationsRepository.CreateMany(ctx, &delegations)
 	if err != nil {
 		return rowsAffected, fmt.Errorf("createMany: %w", err)
 	}

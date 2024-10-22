@@ -40,12 +40,12 @@ func main() {
 	defer cancel()
 
 	go utilworker.StartNewIntervalWorker("worker-delegations", func() error {
-		delegations, err := delegationsClient.PollNew()
+		delegations, err := delegationsClient.PollNew(ctx)
 		if err != nil {
 			return err
 		}
 
-		_, err = delegationsClient.Create(delegations)
+		_, err = delegationsClient.Create(ctx, delegations)
 		if err != nil {
 			return err
 		}

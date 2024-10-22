@@ -1,6 +1,7 @@
 package xtz_test
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"os"
@@ -33,7 +34,7 @@ func TestGetLastDelegations(t *testing.T) {
 
 	delegationsClient := delegations.NewClient(tezosClient, dr)
 
-	dr.CreateMany(&[]models.Delegations{
+	dr.CreateMany(context.Background(), &[]models.Delegations{
 		{
 			ID:        1,
 			TezosID:   1,

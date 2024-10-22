@@ -51,7 +51,7 @@ func (a *Handler) getLastDelegations(c *gin.Context) {
 		queryParams.Limit = 100
 	}
 
-	delegations, err := a.DelegationsClient.GetDelegations(queryParams.Year, queryParams.Page, queryParams.Limit)
+	delegations, err := a.DelegationsClient.GetDelegations(c.Request.Context(), queryParams.Year, queryParams.Page, queryParams.Limit)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
