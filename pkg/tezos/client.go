@@ -18,8 +18,10 @@ type Client struct {
 
 // NewClient create a new http client to handle request on `https://api.tzkt.io/` api.
 func NewClient() *Client {
+	timeout := 45 * time.Second
+
 	client := &Client{
-		HTTP:    utilhttp.NewClient(45 * time.Second),
+		HTTP:    utilhttp.NewClient(timeout),
 		BaseUrl: `https://api.tzkt.io/`,
 	}
 

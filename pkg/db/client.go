@@ -11,8 +11,8 @@ type Client struct {
 	DB *gorm.DB
 }
 
-// CreateClient initializes a new Client with a database connection based on the DSN given in param.
-// If the connection is successfull it automatically autoMigrate models.
+// CreateClient initializes a new Client with a database connection based on the DSN received in param.
+// If the connection is successfull it will automatically autoMigrate models.
 func CreateClient(DSN string) (Client, error) {
 	db, err := gorm.Open(mysql.Open(DSN), &gorm.Config{})
 	if err != nil {

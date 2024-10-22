@@ -59,9 +59,9 @@ func (c Client) GetDelegations(ctx context.Context, year int, page int, limit in
 	return delegations, nil
 }
 
-// PollWithTezosOptions poll all delegations matching the provided tezosOptions.
-func (c Client) PollWithTezosOptions(ctx context.Context, tezosOpt tezos.TezosDelegationsOption) ([]models.Delegations, error) {
-	delegationsResponse, err := c.tezosClient.FetchDelegations(tezosOpt)
+// PollWithOptions poll all delegations matching the provided tezosOptions.
+func (c Client) PollWithOptions(ctx context.Context, options tezos.TezosDelegationsOption) ([]models.Delegations, error) {
+	delegationsResponse, err := c.tezosClient.FetchDelegations(options)
 	if err != nil {
 		return []models.Delegations{}, err
 	}
@@ -83,23 +83,18 @@ func (c Client) PollNew(ctx context.Context) ([]models.Delegations, error) {
 		return []models.Delegations{}, fmt.Errorf("delegationsRepository FindMostRecent: %s", err)
 	}
 
-	var tezosOption = tezos.TezosDelegationsOption{
+	var options = tezos.TezosDelegationsOption{
 		From: time.Now().AddDate(0, 0, -1),
 	}
 
 	if recentDelegations != nil {
-		tezosOption.From = recentDelegations.Timestamp
-		tezosOption.IDNotIn = append(tezosOption.IDNotIn, recentDelegations.TezosID)
+		options.From = recentDelegations.Timestamp
+		options.IDNotIn = append(options.IDNotIn, recentDelegations.TezosID)
 	}
 
-	delegationsResponse, err := c.tezosClient.FetchDelegations(tezosOption)
+	delegations, err := c.PollWithOptions(ctx, options)
 	if err != nil {
-		return []models.Delegations{}, fmt.Errorf("tezosClient fetch delegations: %w", err)
-	}
-
-	delegations, err := c.parseDelegations(delegationsResponse)
-	if err != nil {
-		return []models.Delegations{}, fmt.Errorf("parseDelegations: %w", err)
+		return []models.Delegations{}, fmt.Errorf("PollWithOptions: %w", err)
 	}
 
 	return delegations, nil

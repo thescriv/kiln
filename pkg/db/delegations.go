@@ -5,17 +5,16 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/kiln-mid/pkg/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-
-	. "github.com/kiln-mid/pkg/models"
 )
 
 type DelegationsRepository interface {
-	CreateMany(ctx context.Context, Delegations *[]Delegations) (int64, error)
-	FindMostRecent(ctx context.Context) (*Delegations, error)
-	FindAndOrderByTimestamp(ctx context.Context, limit int, offset int) (*[]Delegations, error)
-	FindFromYear(ctx context.Context, year int, limit int, offset int) (*[]Delegations, error)
+	CreateMany(ctx context.Context, Delegations *[]models.Delegations) (int64, error)
+	FindMostRecent(ctx context.Context) (*models.Delegations, error)
+	FindAndOrderByTimestamp(ctx context.Context, limit int, offset int) (*[]models.Delegations, error)
+	FindFromYear(ctx context.Context, year int, limit int, offset int) (*[]models.Delegations, error)
 	FindAvailableYear(ctx context.Context) (*[]int, error)
 }
 
@@ -31,8 +30,9 @@ type DelegationsAdapter struct {
 
 // CreateMany inserts multiple Delegations records into the database, no error is returned if their is a conflict based on UNIQUE key
 // return the number of inserted rows.
-func (r *DelegationsAdapter) CreateMany(ctx context.Context, d *[]Delegations) (int64, error) {
+func (r *DelegationsAdapter) CreateMany(ctx context.Context, d *[]models.Delegations) (int64, error) {
 	res := r.DB.WithContext(ctx).Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "id_tezos", Table: "delegations"}},
 		DoNothing: true,
 	}).Create(&d)
 
@@ -47,7 +47,7 @@ func (r *DelegationsAdapter) CreateMany(ctx context.Context, d *[]Delegations) (
 func (r *DelegationsAdapter) FindAvailableYear(ctx context.Context) (*[]int, error) {
 	var years []int
 
-	res := r.DB.Model(Delegations{}).
+	res := r.DB.Model(models.Delegations{}).
 		Select("DISTINCT YEAR(timestamp) AS year").
 		Order("year").
 		Pluck("year", &years)
@@ -60,8 +60,8 @@ func (r *DelegationsAdapter) FindAvailableYear(ctx context.Context) (*[]int, err
 }
 
 // FindFromYear fetch and return with a limit and an offset all delegations who can be found for a given year.
-func (r *DelegationsAdapter) FindFromYear(ctx context.Context, year int, limit int, offset int) (*[]Delegations, error) {
-	var d []Delegations
+func (r *DelegationsAdapter) FindFromYear(ctx context.Context, year int, limit int, offset int) (*[]models.Delegations, error) {
+	var d []models.Delegations
 
 	res := r.DB.Limit(limit).
 		Offset(offset).Where("YEAR(timestamp) = ?", year).Order("timestamp desc").Find(&d)
@@ -73,8 +73,8 @@ func (r *DelegationsAdapter) FindFromYear(ctx context.Context, year int, limit i
 }
 
 // FindAndOrderByTimestamp fetch and return with a limit and an offset all delegations ordered by timestamp.
-func (r *DelegationsAdapter) FindAndOrderByTimestamp(ctx context.Context, limit int, offset int) (*[]Delegations, error) {
-	var d []Delegations
+func (r *DelegationsAdapter) FindAndOrderByTimestamp(ctx context.Context, limit int, offset int) (*[]models.Delegations, error) {
+	var d []models.Delegations
 
 	res := r.DB.Limit(limit).
 		Offset(offset).Order("timestamp desc").Find(&d)
@@ -86,8 +86,8 @@ func (r *DelegationsAdapter) FindAndOrderByTimestamp(ctx context.Context, limit 
 }
 
 // FindMostRecent fetch and return the most recent delegations.
-func (r *DelegationsAdapter) FindMostRecent(ctx context.Context) (*Delegations, error) {
-	var d Delegations
+func (r *DelegationsAdapter) FindMostRecent(ctx context.Context) (*models.Delegations, error) {
+	var d models.Delegations
 
 	res := r.DB.Order("timestamp desc").First(&d)
 

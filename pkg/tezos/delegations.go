@@ -11,7 +11,7 @@ import (
 	"github.com/kiln-mid/pkg/miscellaneous"
 )
 
-// TezosDelegationsOption represent all option accepted by the tezosClient.
+// TezosDelegationsOption represent options accepted by the tezosClient.
 type TezosDelegationsOption struct {
 	From    time.Time
 	To      time.Time
@@ -31,7 +31,7 @@ type DelegationResponse struct {
 	} `json:"sender"`
 }
 
-// createParams return received TezosDelegationsOptions into a url.Values variable.
+// createParams transform and return TezosDelegationsOptions into a url.Values variable.
 func (c *Client) createParams(options TezosDelegationsOption) url.Values {
 	params := url.Values{}
 

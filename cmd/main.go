@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -39,16 +40,18 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	go utilworker.StartNewIntervalWorker("worker-delegations", func() error {
+	go utilworker.StartNewIntervalWorker("worker-delegations", func(ctx context.Context) error {
 		delegations, err := delegationsClient.PollNew(ctx)
 		if err != nil {
 			return err
 		}
 
-		_, err = delegationsClient.Create(ctx, delegations)
+		nbCreated, err := delegationsClient.Create(ctx, delegations)
 		if err != nil {
 			return err
 		}
+
+		fmt.Printf("Created %d entity\n", nbCreated)
 
 		return nil
 	}, 0, ctx)
