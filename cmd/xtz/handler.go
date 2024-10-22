@@ -2,17 +2,15 @@ package xtz
 
 import (
 	"net/http"
-	"slices"
 
 	"github.com/gin-gonic/gin"
-	"github.com/kiln-mid/pkg/db"
-	"github.com/kiln-mid/pkg/miscellaneous"
+	"github.com/kiln-mid/pkg/delegations"
 	"github.com/kiln-mid/pkg/models"
 )
 
 // Handler represent the handler of delegationsRepository
 type Handler struct {
-	DelegationsRepository db.DelegationsRepository
+	DelegationsClient *delegations.Client
 }
 
 // RegisterRouter expose all endpoint for the `xtz` group.
@@ -53,35 +51,10 @@ func (a *Handler) getLastDelegations(c *gin.Context) {
 		queryParams.Limit = 100
 	}
 
-	var delegations = &[]models.Delegations{}
-
-	if queryParams.Year == 0 {
-		delegationsPtr, err := a.DelegationsRepository.FindAndOrderByTimestamp(queryParams.Limit, queryParams.Limit*(queryParams.Page-1))
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		delegations = delegationsPtr
-	} else {
-		years, err := a.DelegationsRepository.FindAvailableYear()
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		if !slices.Contains(*years, queryParams.Year) {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Here are the following available years: " + miscellaneous.SplitToString(*years, ",")})
-			return
-		}
-
-		delegationsPtr, err := a.DelegationsRepository.FindFromYear(queryParams.Year, queryParams.Limit, queryParams.Limit*(queryParams.Page-1))
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		delegations = delegationsPtr
+	delegations, err := a.DelegationsClient.GetDelegations(queryParams.Year, queryParams.Page, queryParams.Limit)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	response := Response{

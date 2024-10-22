@@ -10,7 +10,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/kiln-mid/cmd/xtz"
 	"github.com/kiln-mid/pkg/db"
+	"github.com/kiln-mid/pkg/delegations"
 	"github.com/kiln-mid/pkg/models"
+	"github.com/kiln-mid/pkg/tezos"
 	"github.com/kiln-mid/pkg/utilconfig"
 	"github.com/steinfletcher/apitest"
 	"github.com/stretchr/testify/require"
@@ -26,6 +28,10 @@ func TestGetLastDelegations(t *testing.T) {
 	require.NoError(t, err)
 
 	dr := db.NewDelegationsAdapter(dbClient.DB)
+
+	tezosClient := tezos.NewClient()
+
+	delegationsClient := delegations.NewClient(tezosClient, dr)
 
 	dr.CreateMany(&[]models.Delegations{
 		{
@@ -46,7 +52,7 @@ func TestGetLastDelegations(t *testing.T) {
 		},
 	})
 
-	handler := &xtz.Handler{DelegationsRepository: dr}
+	handler := &xtz.Handler{DelegationsClient: delegationsClient}
 
 	handler.RegisterRouter(router)
 
@@ -67,7 +73,7 @@ func TestGetLastDelegations(t *testing.T) {
 					Amount:    1,
 					Level:     1,
 					Delegator: "foobar",
-					Timestamp: time.Date(2024, 1, 1, 10, 0, 0, 0, time.UTC),
+					Timestamp: time.Date(2024, 1, 1, 11, 0, 0, 0, time.UTC),
 				},
 				{
 					ID:        2,

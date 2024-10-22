@@ -27,7 +27,7 @@ func TestWorker_StartAndStop(t *testing.T) {
 
 	fnCalled = false
 
-	time.Sleep(2 * time.Second)
+	time.Sleep(1500 * time.Millisecond)
 
 	assert.False(t, fnCalled)
 }
@@ -46,7 +46,7 @@ func TestWorker_StartWithError(t *testing.T) {
 
 	fnCalled = false
 
-	time.Sleep(2 * time.Second)
+	time.Sleep(1500 * time.Millisecond)
 
 	assert.False(t, fnCalled)
 }

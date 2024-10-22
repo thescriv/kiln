@@ -1,25 +1,13 @@
 package tezos_test
 
 import (
-	"net/http"
 	"testing"
 	"time"
 
 	"github.com/h2non/gock"
 	"github.com/kiln-mid/pkg/tezos"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
-
-// Mock du client HTTP pour simuler les appels
-type MockHttpClient struct {
-	mock.Mock
-}
-
-func (m *MockHttpClient) Do(req *http.Request) (*http.Response, error) {
-	args := m.Called(req)
-	return args.Get(0).(*http.Response), args.Error(1)
-}
 
 func TestTezos_FetchDelegatiosn(t *testing.T) {
 	tezosClient := tezos.NewClient()

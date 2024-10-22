@@ -24,17 +24,17 @@ func main() {
 
 	DelegationsRepository := db.NewDelegationsAdapter(dbClient.DB)
 
+	tezosClient := tezos.NewClient()
+
+	delegationsClient := delegations.NewClient(tezosClient, DelegationsRepository)
+
 	r := gin.Default()
 
 	x := xtz.Handler{
-		DelegationsRepository: DelegationsRepository,
+		DelegationsClient: delegationsClient,
 	}
 
 	x.RegisterRouter(r)
-
-	tezosClient := tezos.NewClient()
-
-	delegationsClient := delegations.NewClient(*tezosClient, DelegationsRepository)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

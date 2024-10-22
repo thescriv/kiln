@@ -2,25 +2,60 @@ package delegations
 
 import (
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/kiln-mid/pkg/db"
+	"github.com/kiln-mid/pkg/miscellaneous"
 	"github.com/kiln-mid/pkg/models"
 	"github.com/kiln-mid/pkg/tezos"
 )
 
 // Client represent the struct of a delegations client.
 type Client struct {
-	tezosClient           tezos.Client
+	tezosClient           *tezos.Client
 	delegationsRepository db.DelegationsRepository
 }
 
 // NewClient return a new delegations Client to interact with tezos and delegationsRepository.
-func NewClient(tezosClient tezos.Client, dr db.DelegationsRepository) *Client {
+func NewClient(tezosClient *tezos.Client, dr db.DelegationsRepository) *Client {
 	return &Client{
 		tezosClient:           tezosClient,
 		delegationsRepository: dr,
 	}
+}
+
+// GetDelegations return stored delegations based on params received.
+// year represent the year to search delegations for, if year is equal to 0 it will retrieve Most Recent delegations, year cannot be equal to something non-present in db.
+// page represent the current page for the pagination.
+// limit represent the number max of item asked by the client.
+func (c Client) GetDelegations(year int, page int, limit int) (*[]models.Delegations, error) {
+	offset := limit * (page - 1)
+
+	if year == 0 {
+		delegations, err := c.delegationsRepository.FindAndOrderByTimestamp(limit, offset)
+		if err != nil {
+			return &[]models.Delegations{}, fmt.Errorf("delegationsRepository findAndOrderByTimestamp: %w", err)
+		}
+
+		return delegations, nil
+	}
+
+	years, err := c.delegationsRepository.FindAvailableYear()
+	if err != nil {
+		return &[]models.Delegations{}, fmt.Errorf("delegationsRepository FindAvailableYear: %w", err)
+	}
+
+	if !slices.Contains(*years, year) {
+		return &[]models.Delegations{}, fmt.Errorf("Here are the following available years: " + miscellaneous.SplitToString(*years, ","))
+	}
+
+	delegations, err := c.delegationsRepository.FindFromYear(year, limit, offset)
+	if err != nil {
+		return &[]models.Delegations{}, fmt.Errorf("delegationsRepository FindFromYear: %w", err)
+	}
+
+	return delegations, nil
 }
 
 // PollWithTezosOptions poll all delegations matching the provided tezosOptions.

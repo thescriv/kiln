@@ -32,7 +32,7 @@ func (Tezos) FetchDelegationsFromYear(ctx context.Context, year int) {
 
 	tezosClient := tezos.NewClient()
 
-	delegationClient := delegations.NewClient(*tezosClient, delegationsRepository)
+	delegationClient := delegations.NewClient(tezosClient, delegationsRepository)
 
 	tezosOpt := tezos.TezosDelegationsOption{
 		From:   time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC),

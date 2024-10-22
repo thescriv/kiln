@@ -21,10 +21,11 @@ func StartNewIntervalWorker(name string, fct func() error, interval time.Duratio
 		interval = DefaultWorkerInterval
 	}
 
-	cancel := make(chan bool)
-
 	fmt.Printf("[WORKER] %s started.\n", name)
 	go func() {
+		cancel := make(chan bool)
+		defer close(cancel)
+
 		ticker := time.NewTicker(interval)
 		defer ticker.Stop()
 
